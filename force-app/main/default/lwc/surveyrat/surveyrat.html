@@ -21,8 +21,13 @@
                         <template for:each={processedOptions} for:item="questionOption">
                             <div key={questionOption.id} class="slds-m-bottom_medium">
                                 <p>{questionOption.question.Question_Order__c}. {questionOption.question.Question_Text__c}</p>
-                                <template if:true={questionOption.options}>
-                                    <lightning-radio-group name={questionOption.id} data-id={questionOption.options.Id} options={questionOption.options} onchange={handleRadioChange}></lightning-radio-group>
+                                <template if:true={questionOption.isMultiSelect}>
+                                    <template for:each={questionOption.options} for:item="option">
+                                        <lightning-input type="checkbox" key={option.value} name={questionOption.id} label={option.label} value={option.value} onchange={handleCheckboxChange}></lightning-input>
+                                    </template>
+                                </template>
+                                <template if:true={questionOption.isSingleSelect}>
+                                    <lightning-radio-group name={questionOption.id} options={questionOption.options} onchange={handleRadioChange}></lightning-radio-group>
                                 </template>
                             </div>
                         </template>
@@ -32,7 +37,6 @@
                                               disabled={isSubmitDisabled}></lightning-button>
                         </div>
                     </div>
-
                 </div>
             </div>
         </template>

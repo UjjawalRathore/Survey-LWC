@@ -1,4 +1,4 @@
-//Without @track
+// wORKING Without @track
 import { LightningElement, wire, api } from 'lwc';
 import getSurveyQuestions from '@salesforce/apex/SurveyController.getSurveyQuestions';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -27,7 +27,10 @@ export default class Survey extends LightningElement {
             return {
                 id: question.Id,
                 question: question,
-                options: question.Survey_Answer_Options__r ? this.getOptions(question.Survey_Answer_Options__r) : []
+                options: question.Survey_Answer_Options__r ? this.getOptions(question.Survey_Answer_Options__r) : [],
+                isMultiSelect: question.Answer_Type__c === 'Multi Select',
+                isSingleSelect: question.Answer_Type__c === 'Single Select'
+                // isTextResponse: question.Answer_Type__c === 'Text Response'
             };
         });
     }
@@ -52,12 +55,27 @@ export default class Survey extends LightningElement {
         this.isModalOpen = false;
     }
 
-    // Method to handle radio button change
+    handleCheckboxChange(event) {
+        const questionId = event.target.name;
+        const selectedOption = event.target.value;
+        let selectedOptions = this.selectedAnswers[questionId] || [];
+
+        const index = selectedOptions.indexOf(selectedOption);
+
+        if (index === -1) {
+            selectedOptions.push(selectedOption);
+        } else {
+            selectedOptions.splice(index, 1);
+        }
+
+        this.selectedAnswers = { ...this.selectedAnswers, [questionId]: selectedOptions };
+        console.log(JSON.stringify(this.selectedAnswers));
+    }
+
     handleRadioChange(event) {
         const questionId = event.target.name;
-        console.log(questionId);
-        console.log(questionId + "-->" + event.detail.value);
         this.selectedAnswers = { ...this.selectedAnswers, [questionId]: event.detail.value };
+        console.log(JSON.stringify(this.selectedAnswers));
     }
 
     // Getter method to get options for radio group
@@ -73,16 +91,18 @@ export default class Survey extends LightningElement {
     }
 
     handleSurveySubmit() {
-        const surveyQuestionResponsesData = Object.entries(this.selectedAnswers).map(([questionId, chosenResponse1Id]) => {
+        const surveyQuestionResponsesData = this.processedOptions.map(option => {
             return {
-                QuestionId: questionId,
-                ChosenResponse1Id: chosenResponse1Id
+                QuestionId: option.id,
+                ChosenResponse1Id: Array.isArray(this.selectedAnswers[option.id]) ? this.selectedAnswers[option.id][0] : this.selectedAnswers[option.id],
+                ChosenResponseIds: Array.isArray(this.selectedAnswers[option.id]) ? this.selectedAnswers[option.id] : [], // Assuming multi-select responses are stored as an array
             };
         });
         const surveyId = 'a00IS000003NQY1YAO';
-
-        createSurveyQuestionResponses({ surveyQuestionResponsesData, surveyId })
+    
+        createSurveyQuestionResponses({ surveyQuestionResponsesData: JSON.stringify(surveyQuestionResponsesData), surveyId })
             .then(() => {
+                console.log(JSON.stringify(surveyQuestionResponsesData));
                 const event = new ShowToastEvent({
                     title: 'Success',
                     message: 'Survey responses submitted successfully.',
@@ -93,6 +113,7 @@ export default class Survey extends LightningElement {
                 this.dispatchEvent(event);
             })
             .catch(error => {
+                console.log(JSON.stringify(surveyQuestionResponsesData));
                 const event = new ShowToastEvent({
                     title: 'Error',
                     message: 'Error creating survey responses: ' + error.body.message,

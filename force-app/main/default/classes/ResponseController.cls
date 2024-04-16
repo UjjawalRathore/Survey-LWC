@@ -8,12 +8,31 @@ public with sharing class ResponseController {
         resp.Survey__c = surveyId;
         insert resp;
         ID respId = resp.Id;
+
         for (SurveyResponseDataWrapper data : surveyQuestionResponsesData) {
-            if (data.ChosenResponse1Id != null && data.QuestionId != null) {
+            if (data.QuestionId != null) {
                 Survey_Question_Response__c questionResponse = new Survey_Question_Response__c();
-                questionResponse.Chosen_Response_1__c = data.ChosenResponse1Id;
                 questionResponse.Question__c = data.QuestionId;
                 questionResponse.Survey_Response__c = respId;
+
+                // For single-select questions, store the chosen response directly
+                if (data.ChosenResponse1Id != null) {
+                    questionResponse.Chosen_Response_1__c = data.ChosenResponse1Id;
+                }
+
+                // For multi-select questions, iterate over all chosen responses and store them
+                if (data.ChosenResponseIds != null && !data.ChosenResponseIds.isEmpty()) {
+                    for (Integer i = 0; i < data.ChosenResponseIds.size() && i < 5; i++) {
+                        String fieldName = 'Chosen_Response_' + (i + 1) + '__c';
+                        questionResponse.put(fieldName, data.ChosenResponseIds[i]);
+                    }
+                }
+                
+                // For text response, store the text directly
+                // if (data.TextResponse != null) {
+                //     questionResponse.Text_Response__c = data.TextResponse;
+                // }
+
                 surveyQuestionResponsesToInsert.add(questionResponse);
             }
         }
@@ -26,10 +45,31 @@ public with sharing class ResponseController {
     public class SurveyResponseDataWrapper {
         @AuraEnabled
         public Id QuestionId { get; set; }
+
         @AuraEnabled
         public Id ChosenResponse1Id { get; set; }
+        
+        @AuraEnabled
+        public List<Id> ChosenResponseIds { get; set; }
+
+        // @AuraEnabled
+        // public String TextResponse { get; set; }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
