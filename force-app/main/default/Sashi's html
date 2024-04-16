@@ -1,0 +1,73 @@
+<template>
+  <lightning-card title="Survey">
+    <h1 class="slds-text-align_left slds-m-top_medium slds-p-left_x-small"><b>We value your input.  Would you like to take part in a brief survey about your purchase?</b></h1>
+    <div class="slds-p-around_xx-small" style="display: flex; flex-wrap: wrap;">
+        <lightning-radio-group variant="label-hidden" name="radioGroup" options={options} value={surveyValue} type="radio" class="slds-m-around_medium" onchange={handleSurveyButton}></lightning-radio-group>
+    </div>
+    <!-- Survey Modal open -->
+    <template if:true={isModalOpen}>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <div class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <h2 class="slds-text-heading_medium">Sonim Survey Form</h2>
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                    </button>
+                </div>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <div class="slds-p-around_medium">
+                        <lightning-radio-group label="1. How did you hear about Sonim phones?" name="question1"
+                            key={question1options} value={selectedAnswers.question1} options={question1options}
+                            onchange={handleRadioChange} type="radio"></lightning-radio-group>
+                        <br>
+                        <lightning-radio-group name="question2"
+                            label="2. What was your primary reason for buying the Sonim phone?"
+                            key={question2options} value={selectedAnswers.question2} options={question2options}
+                            onchange={handleRadioChange} type="radio"></lightning-radio-group>
+                        <br>
+
+                        <lightning-radio-group name="question3"
+                            label="3. What feature of your Sonim device is most important to you?"
+                            key={question3options} value={selectedAnswers.question3} options={question3options}
+                            onchange={handleRadioChange} type="radio"></lightning-radio-group>
+                        <br>
+                        <lightning-radio-group name="question4"
+                            label="4. Which environment best describes where you work?" key={question4options}
+                            value={selectedAnswers.question4} options={question4options}
+                            onchange={handleRadioChange} type="radio"></lightning-radio-group>
+                        <br>
+
+                        <lightning-radio-group name="question5"
+                            label="5. What function best describes how your company will use your Sonim devices?"
+                            key={question5options} value={selectedAnswers.question5} options={question5options}
+                            onchange={handleRadioChange} type="radio"></lightning-radio-group>
+                        <br>
+
+                        <lightning-radio-group name="question6"
+                            label="6. Do employees use Sonim devices outside of work?" key={question6options}
+                            value={selectedAnswers.question6} options={question6options}
+                            onchange={handleRadioChange} type="radio"></lightning-radio-group>
+                        <br>
+
+                        <lightning-checkbox-group
+                            label="7. What accessories will you use with your Sonim device?"
+                            options={question7options} value={selectedAccessoriesOption} onchange={handleCheckboxChange}>
+                        </lightning-checkbox-group>
+                        <div if:true={SurveyerrorMessage} class="slds-text-color_error">{SurveyerrorMessage}</div>
+                        <br>
+
+                        <div class="slds-modal__footer slds-align_absolute-center">
+                            <lightning-button label="Submit" variant="brand" onclick={handleSurveySubmit}
+                                disabled={disableSurveySubmitButton}></lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <!-- Survey Modal close -->
+  </lightning-card>
+  
+</template>

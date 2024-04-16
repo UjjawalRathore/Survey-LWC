@@ -1,0 +1,44 @@
+<template>
+    <lightning-card title="Survey">
+        <h1 class="slds-text-align_left slds-m-top_medium slds-p-left_x-small">
+            <b>We value your input. Would you like to take part in a brief survey about your purchase?</b>
+        </h1>
+        <div class="slds-p-around_xx-small" style="display: flex; flex-wrap: wrap;">
+            <lightning-radio-group variant="label-hidden" name="radioGroup" options={options} value={surveyValue} type="radio" class="slds-m-around_medium" onchange={handleSurveyButton}></lightning-radio-group>
+        </div>
+        <!-- Survey Modal open -->
+        <template if:true={isModalOpen}>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+            <div class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <div class="slds-modal__header">
+                        <h2 class="slds-text-heading_medium">Survey Form</h2>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeModal}>
+                            <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        </button>
+                    </div>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <template for:each={processedOptions} for:item="questionOption">
+                            <div key={questionOption.id} class="slds-m-bottom_medium">
+                                <p>{questionOption.question.Question_Order__c}. {questionOption.question.Question_Text__c}</p>
+                                <template if:true={questionOption.options}>
+                                    <lightning-radio-group name={questionOption.id} data-id={questionOption.options.Id} options={questionOption.options} onchange={handleRadioChange}></lightning-radio-group>
+                                </template>
+                            </div>
+                        </template>
+                        <div class="slds-modal__footer slds-align_absolute-center">
+                            <!-- Disable the submit button if any question is unanswered -->
+                            <lightning-button label="Submit" variant="brand" onclick={handleSurveySubmit} 
+                                              disabled={isSubmitDisabled}></lightning-button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </template>
+        <!-- Survey Modal close -->
+        <template if:true={showConfirmationModal}>
+            <c-survey-model1 onyes={handleYes} onno={handleNo}></c-survey-model1>
+        </template>
+    </lightning-card>
+</template>

@@ -1,0 +1,469 @@
+WORKING APEX RESPONSE:-
+
+
+public with sharing class ResponseController {
+    @AuraEnabled
+    public static void createSurveyQuestionResponses(List<Map<String, Object>> surveyQuestionResponsesData) {
+        List<Survey_Question_Response__c> surveyQuestionResponsesToInsert = new List<Survey_Question_Response__c>();
+        
+        for (Map<String, Object> questionResponseData : surveyQuestionResponsesData) {
+            if (questionResponseData.containsKey('ChosenResponse1Id') && questionResponseData.containsKey('QuestionId')) {
+                Survey_Question_Response__c questionResponse = new Survey_Question_Response__c();
+                questionResponse.Chosen_Response_1__c = (Id) questionResponseData.get('ChosenResponse1Id');
+                questionResponse.Question__c = (Id) questionResponseData.get('QuestionId');
+                surveyQuestionResponsesToInsert.add(questionResponse);
+            }
+        }
+
+        if (!surveyQuestionResponsesToInsert.isEmpty()) {
+            insert surveyQuestionResponsesToInsert;
+        }
+    }
+}
+
+
+
+
+
+WORKING APEX RESPONSE:-
+
+
+
+
+
+
+
+WORKING JS:-
+
+import { LightningElement, track, wire } from 'lwc';
+import getSurveyQuestions from '@salesforce/apex/SurveyController.getSurveyQuestions';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+// import createSurveyResponses from '@salesforce/apex/ResponseController.createSurveyResponses';
+import createSurveyQuestionResponses from '@salesforce/apex/ResponseController.createSurveyQuestionResponses'
+
+
+export default class Survey extends LightningElement {
+    @track surveyValue = 'No';
+    @track isModalOpen = false;
+    @track surveyQuestions = [];
+    @track selectedAnswers = {};
+
+    @wire(getSurveyQuestions, { surveyName: 'Product Design' })
+    wiredSurveyQuestions({ error, data }) {
+        if (data) {
+            this.surveyQuestions = data;
+            this.processOptions();
+        } else if (error) {
+            console.error('Error retrieving survey questions:', error);
+        }
+    }
+
+    processOptions() {
+        this.processedOptions = this.surveyQuestions.map(question => {
+            return {
+                id: question.Id,
+                question: question,
+                options: question.Survey_Answer_Options__r ? this.getOptions(question.Survey_Answer_Options__r) : []
+            };
+        });
+    }
+
+    // Define options property to display Yes/No radio options
+    get options() {
+        return [
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' },
+        ];
+    }
+
+    // Method to handle the survey button click
+    handleSurveyButton(event) {
+        this.surveyValue = event.detail.value;
+        // Open the modal if the survey value is 'Yes'
+        this.isModalOpen = this.surveyValue === 'Yes';
+    }
+
+    // Method to handle the modal close
+    closeModal() {
+        this.isModalOpen = false;
+    }
+
+    // Method to handle radio button change
+    handleRadioChange(event) {
+        const questionId = event.target.name;
+        console.log(questionId);
+        console.log(questionId+"-->"+event.detail.value);
+        this.selectedAnswers = { ...this.selectedAnswers, [questionId]: event.detail.value };
+
+    }
+
+    // Getter method to get options for radio group
+    getOptions(options) {
+        return options.map(option => ({
+            label: option.Option_Text__c,
+            value: option.Id
+        }));
+    }
+
+    get isSubmitDisabled() {
+        return !this.allQuestionsAnswered();
+    }
+
+    handleSurveySubmit() {
+        const surveyQuestionResponsesData = Object.entries(this.selectedAnswers).map(([questionId, chosenResponse1Id]) => {
+            return {
+                QuestionId: questionId,
+                ChosenResponse1Id: chosenResponse1Id
+            };
+        });
+
+        createSurveyQuestionResponses({ surveyQuestionResponsesData })
+            .then(() => {
+                const event = new ShowToastEvent({
+                    title: 'Success',
+                    message: 'Survey responses submitted successfully.',
+                    variant: 'success'
+                });
+                this.dispatchEvent(event);
+                this.isModalOpen = false;
+            })
+            .catch(error => {
+                const event = new ShowToastEvent({
+                    title: 'Error',
+                    message: 'Error creating survey responses: ' + error.body.message,
+                    variant: 'error'
+                });
+                this.dispatchEvent(event);
+            });
+    }
+
+    allQuestionsAnswered() {
+        return Object.keys(this.selectedAnswers).length === this.surveyQuestions.length;
+    }
+
+}
+
+
+
+WORKING JS:-
+
+
+
+ @wire(getSurveyQuestions, { surveyName: 'Product Design' })
+    wiredSurveyQuestions({ error, data }) {
+        if (data) {
+            this.surveyQuestions = data.map(question => ({
+                id: question.Id,
+                name: question.Name,
+                text: question.Question_Text__c,
+                answerType: question.Answer_Type__c,
+                options: question.Survey_Answer_Options__r.map(option => ({
+                    id: option.Id,
+                    name: option.Name,
+                    text: option.Option_Text__c
+                }))
+            }));
+            console.log("data stored", surveyQuestions);
+            console.log("data stored", data);
+        } else if (error) {
+            // Handle error
+            console.error('Error fetching survey questions: ', error);
+        }
+    }
+
+
+
+
+
+JS
+
+
+// import { LightningElement, track, wire } from 'lwc';
+// import getSurveyQuestions from '@salesforce/apex/SurveyController.getSurveyQuestions';
+// import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+// import createSurveyResponses from '@salesforce/apex/SurveyController.createSurveyResponses';
+
+
+// export default class Survey extends LightningElement {
+//     @track surveyValue = 'No';
+//     @track isModalOpen = false;
+//     @track surveyQuestions = [];
+//     @track selectedAnswers = {};
+
+//     @wire(getSurveyQuestions, { surveyName: 'Product Design' })
+//     wiredSurveyQuestions({ error, data }) {
+//         if (data) {
+//             this.surveyQuestions = data;
+//             this.processOptions();
+//         } else if (error) {
+//             console.error('Error retrieving survey questions:', error);
+//         }
+//     }
+
+//     processOptions() {
+//         this.processedOptions = this.surveyQuestions.map(question => {
+//             return {
+//                 id: question.Id,
+//                 question: question,
+//                 options: question.Survey_Answer_Options__r ? this.getOptions(question.Survey_Answer_Options__r) : []
+//             };
+//         });
+//     }
+
+//     // Define options property to display Yes/No radio options
+//     get options() {
+//         return [
+//             { label: 'Yes', value: 'Yes' },
+//             { label: 'No', value: 'No' },
+//         ];
+//     }
+
+//     // Method to handle the survey button click
+//     handleSurveyButton(event) {
+//         this.surveyValue = event.detail.value;
+//         // Open the modal if the survey value is 'Yes'
+//         this.isModalOpen = this.surveyValue === 'Yes';
+//     }
+
+//     // Method to handle the modal close
+//     closeModal() {
+//         this.isModalOpen = false;
+//     }
+
+//     // Method to handle radio button change
+//     handleRadioChange(event) {
+//         const questionId = event.target.name;
+//         this.selectedAnswers = { ...this.selectedAnswers, [questionId]: event.detail.value };
+//     }
+
+//     // Getter method to get options for radio group
+//     getOptions(options) {
+//         return options.map(option => ({
+//             label: option.Option_Text__c,
+//             value: option.Id
+//         }));
+//     }
+
+//     get isSubmitDisabled() {
+//         return !this.allQuestionsAnswered();
+//     }
+
+//     // Method to handle survey submit button click
+//     handleSurveySubmit() {
+//         if (!this.allQuestionsAnswered()) {
+//             // Display toast message if any question is unanswered
+//             const event = new ShowToastEvent({
+//                 title: 'Error',
+//                 message: 'Please answer all questions before submitting.',
+//                 variant: 'error'
+//             });
+//             this.dispatchEvent(event);
+//             return;
+//         }
+//         // Implement logic to submit survey answers
+//     }
+
+//     // Method to validate if all questions are answered
+//     allQuestionsAnswered() {
+//         return this.processedOptions.every(option => {
+//             return this.selectedAnswers.hasOwnProperty(option.id);
+//         });
+//     }
+
+// }
+import { LightningElement, track, wire } from 'lwc';
+import getSurveyQuestions from '@salesforce/apex/SurveyController.getSurveyQuestions';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+// import createSurveyResponses from '@salesforce/apex/ResponseController.createSurveyResponses';
+
+
+export default class Survey extends LightningElement {
+    @track surveyValue = 'No';
+    @track isModalOpen = false;
+    @track surveyQuestions = [];
+    @track selectedAnswers = {};
+
+    // Define wire method to fetch survey questions
+    @wire(getSurveyQuestions, { surveyName: 'Product Design' })
+    wiredSurveyQuestions({ error, data }) {
+        if (data) {
+            this.surveyQuestions = data;
+            this.processOptions();
+        } else if (error) {
+            console.error('Error retrieving survey questions:', error);
+        }
+    }
+
+    // Method to process survey questions and options
+    processOptions() {
+        this.processedOptions = this.surveyQuestions.map(question => {
+            return {
+                id: question.Id,
+                question: question,
+                options: question.Survey_Answer_Option__r ? this.getOptions(question.Survey_Answer_Option__r) : []
+            };
+        });
+    }
+
+    // Define options property to display Yes/No radio options
+    get options() {
+        return [
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' },
+        ];
+    }
+
+    // Method to handle the survey button click
+    handleSurveyButton(event) {
+        this.surveyValue = event.detail.value;
+        // Open the modal if the survey value is 'Yes'
+        this.isModalOpen = this.surveyValue === 'Yes';
+    }
+
+    // Method to handle the modal close
+    closeModal() {
+        this.isModalOpen = false;
+    }
+
+    // Method to handle radio button change
+    handleRadioChange(event) {
+        const questionId = event.target.name;
+        const optionId = event.target.data.Id;
+        console.log(optionId);
+        this.selectedAnswers = { ...this.selectedAnswers, [questionId]: event.detail.value };
+    }
+
+    // Getter method to get options for radio group
+    getOptions(options) {
+        return options.map(option => ({
+            label: option.Option_Text__c,
+            value: option.Id
+        }));
+    }
+
+    // Method to check if all questions are answered
+    get isSubmitDisabled() {
+        return !this.allQuestionsAnswered();
+    }
+
+    // Method to handle survey submit button click
+        handleSurveySubmit() {
+            // Convert selectedAnswers to a regular JavaScript object
+            const selectedAnswersObject = JSON.parse(JSON.stringify(this.selectedAnswers));
+            
+            // Log the selected options IDs
+            console.log('Selected options IDs:', selectedAnswersObject);
+            
+            // Prepare survey response data
+            const surveyResponseData = {
+                ResponderId: '005IS000000FyVLYA0', // Replace with actual responder ID
+                ResponseDate: new Date(),
+                SurveyId: 'a00IS000003NQY1YAO', // Replace with actual survey ID
+                QuestionResponses: Object.entries(selectedAnswersObject).map(([questionId, chosenResponse1Id]) => {
+                    return {
+                        QuestionId: questionId,
+                        ChosenResponse1Id: chosenResponse1Id
+                    };
+                })
+            };
+        
+            // Call the Apex method to create survey responses
+            createSurveyResponses({ surveyResponseData })
+                .then(() => {
+                    // Show success message
+                    const event = new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Survey responses submitted successfully.',
+                        variant: 'success'
+                    });
+                    this.dispatchEvent(event);
+        
+                    // Close the modal
+                    this.isModalOpen = false;
+                })
+                .catch(error => {
+                    // Show error message
+                    const event = new ShowToastEvent({
+                        title: 'Error',
+                        message: 'Error creating survey responses: ' + error.body.message,
+                        variant: 'error'
+                    });
+                    this.dispatchEvent(event);
+                });
+        
+    }
+
+    // Method to validate if all questions are answered
+    allQuestionsAnswered() {
+        return this.processedOptions.every(option => {
+            return this.selectedAnswers.hasOwnProperty(option.id);
+        });
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    HTML
+
+
+    <template>
+    <lightning-card title="Survey">
+        <h1 class="slds-text-align_left slds-m-top_medium slds-p-left_x-small">
+            <b>We value your input. Would you like to take part in a brief survey about your purchase?</b>
+        </h1>
+        <div class="slds-p-around_xx-small" style="display: flex; flex-wrap: wrap;">
+            <lightning-radio-group variant="label-hidden" name="radioGroup" options={options} value={surveyValue} type="radio" class="slds-m-around_medium" onchange={handleSurveyButton}></lightning-radio-group>
+        </div>
+        <!-- Survey Modal open -->
+        <template if:true={isModalOpen}>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+            <div class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <div class="slds-modal__header">
+                        <h2 class="slds-text-heading_medium">Survey Form</h2>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeModal}>
+                            <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        </button>
+                    </div>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <template for:each={processedOptions} for:item="questionOption">
+                            <div key={questionOption.id} class="slds-m-bottom_medium">
+                                <p>{questionOption.question.Question_Order__c}.{questionOption.id} {questionOption.question.Question_Text__c}</p>
+                                <template if:true={questionOption.options}>
+                                    <lightning-radio-group name={questionOption.id} data-id={questionOption.options.Id} options={questionOption.options} onchange={handleRadioChange}></lightning-radio-group>
+                                </template>
+                            </div>
+                        </template>
+                        <div class="slds-modal__footer slds-align_absolute-center">
+                            <!-- Disable the submit button if any question is unanswered -->
+                            <lightning-button label="Submit" variant="brand" onclick={handleSurveySubmit} 
+                                              disabled={isSubmitDisabled}></lightning-button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </template>
+        <!-- Survey Modal close -->
+    </lightning-card>
+</template>

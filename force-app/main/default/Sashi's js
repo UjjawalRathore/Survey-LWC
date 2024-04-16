@@ -1,0 +1,189 @@
+JA:-
+
+import { LightningElement } from 'lwc';
+
+export default class Survey extends LightningElement {
+  surveyValue = 'No';
+  selectedAccessoriesOption = [];
+  isModalOpen = false;
+  disableSurveySubmitButton = true;
+  surveySubmitButton = true;
+  SurveyerrorMessage = '';
+  selectedSurveyAnswersArray = [];
+
+  
+  //Survey Modal
+  get options() {
+    return [
+        { label: 'Yes', value: 'Yes' },
+        { label: 'No', value: 'No' },
+    ];
+  }
+
+
+  get question1options() {
+    return [
+        { label: 'Email', value: 'Email' },
+        { label: 'Event/Festival', value: 'Event/Festival' },
+        { label: 'Facebook', value: 'Facebook' },
+        { label: 'Family/Friend', value: 'Family/Friend' },
+        { label: 'Internet Article', value: 'Internet Article' },
+        { label: 'Newspaper Story', value: 'Newspaper Story' },
+        { label: 'TV', value: 'TV' },
+        { label: 'Twitter', value: 'Twitter' },
+        { label: 'Work', value: 'Work' },
+        { label: 'Youtube', value: 'Youtube' },
+        { label: 'Other', value: 'Other' },
+    ];
+  }
+
+  get question2options() {
+      return [
+          { label: 'My work requires a tough phone', value: 'My work requires a tough phone' },
+          { label: 'I just like a rugged phone', value: 'I just like a rugged phone' },
+          { label: 'Outdoor activities', value: 'Outdoor activities' },
+          { label: 'As a gift', value: 'As a gift' },
+          { label: 'Other', value: 'Other' },
+      ];
+  }
+
+  get question3options() {
+      return [
+          { label: '3G Performance', value: '3G Performance' },
+          { label: 'Access to Accessories', value: 'Access to Accessories' },
+          { label: 'Accessible Key Pad', value: 'Accessible Key Pad' },
+          { label: 'Extra Loud Audio', value: 'Extra Loud Audio' },
+          { label: 'Extra-Long Battery Life', value: 'Extra-Long Battery Life' },
+          { label: 'GPS', value: 'GPS' },
+          { label: 'Intrinsically Safe', value: 'Intrinsically Safe' },
+          { label: 'Lone Worker Safety/Man Down Sensor', value: 'Lone Worker Safety/Man Down Sensor' },
+          { label: 'Protection against drops/shocks/hard use', value: 'Protection against drops/shocks/hard use' },
+          { label: 'Protection against environmental conditions (rain,fog,salt air, dirt.)', value: 'Protection against environmental conditions (rain,fog,salt air, dirt.)' },
+          { label: 'Protection against extreme temperatures', value: 'Protection against extreme temperatures' },
+          { label: 'Push-To-Talk', value: 'Push-To-Talk' },
+          { label: 'Rugged Camera', value: 'Rugged Camera' },
+          { label: 'Vibration Proof', value: 'Vibration Proof' },
+          { label: 'Other', value: 'Other' },
+      ];
+  }
+
+  get question4options() {
+      return [
+          { label: 'Agriculture', value: 'Agriculture' },
+          { label: 'Construction', value: 'Construction' },
+          { label: 'Education', value: 'Education' },
+          { label: 'Health Care', value: 'Health Care' },
+          { label: 'Hospitality', value: 'Hospitality' },
+          { label: 'Manufacturing', value: 'Manufacturing' },
+          { label: 'Oil & Gas/Petrochemical', value: 'Oil & Gas/Petrochemical' },
+          { label: 'Public Safety/Defence', value: 'Public Safety/Defence' },
+          { label: 'Security/Facilities Management', value: 'Security/Facilities Management' },
+          { label: 'Sports/Adventure', value: 'Sports/Adventure' },
+          { label: 'Transportation Air', value: 'Transportation Air' },
+          { label: 'Maritime', value: 'Maritime' },
+          { label: 'Transportation Rail', value: 'Transportation Rail' },
+          { label: 'Transportation Road', value: 'Transportation Road' },
+          { label: 'Utilities', value: 'Utilities' },
+          { label: 'Waste Management', value: 'Waste Management' },
+          { label: 'Other', value: 'Other' },
+      ];
+  }
+
+  get question5options() {
+      return [
+          { label: 'Communication: within teams', value: 'Communication: within teams' },
+          { label: 'Communication: supervisor <=> employee', value: 'Communication: supervisor <=> employee' },
+          { label: 'Employee monitoring: Productivity', value: 'Employee monitoring: Productivity' },
+          { label: 'Employee monitoring: Safety', value: 'Employee monitoring: Safety' },
+          { label: 'Facility management', value: 'Facility management' },
+          { label: 'Security', value: 'Security' },
+          { label: 'Transportation', value: 'Transportation' },
+          { label: 'Other', value: 'Other' },
+      ];
+  }
+
+  get question6options() {
+      return [
+          { label: 'Yes', value: 'Yes' },
+          { label: 'No', value: 'No' },
+      ];
+  }
+  question7options = [
+    { label: 'Battery', value: 'Battery' },
+    { label: 'Belt Clip', value: 'Belt Clip' },
+    { label: 'IS Battery', value: 'IS Battery' },
+    { label: 'Rugged Pouch', value: 'Rugged Pouch' },
+    { label: 'Safety Box', value: 'Safety Box' },
+    { label: 'Screwdriver', value: 'Screwdriver' },
+    { label: 'USB Adaptor', value: 'USB Adaptor' },
+    { label: 'PTT Wired Headset', value: 'PTT Wired Headset' },
+    { label: 'PTT Bluetooth Headset', value: 'PTT Bluetooth Headset' },
+    { label: 'PTT Bluetooth Remote Speaker Microphone', value: 'PTT Bluetooth Remote Speaker Microphone' },
+    { label: 'PTT Intrinsically Safe Remote Speaker Phone', value: 'PTT Intrinsically Safe Remote Speaker Phone' },
+    { label: 'PTT NH IS', value: 'PTT NH IS' },
+    { label: 'USB Cable', value: 'USB Cable' },
+    { label: 'Wall Charger', value: 'Wall Charger' },
+    { label: 'Wired Headset', value: 'Wired Headset' },
+    { label: 'Xpand Loud Speaker', value: 'Xpand Loud Speaker' },
+    { label: 'Xpand Near Field Communication', value: 'Xpand Near Field Communication' },
+    { label: 'None', value: 'None' },
+  ];
+  handleSurveyButton(event) {
+    this.surveyValue = event.detail.value;
+    this.isModalOpen = this.surveyValue === 'Yes';
+  }
+  closeModal() {
+      this.isModalOpen = false;
+  }
+  selectedAnswers = {
+      question1: '',
+      question2: '',
+      question3: '',
+      question4: '',
+      question5: '',
+      question6: '',
+      question7:'',
+  };
+
+
+
+  handleRadioChange(event) {
+      const questionName = event.target.name;
+      this.selectedAnswers[questionName] = event.detail.value;
+      this.checkAllQuestionsAnswered();
+  }
+
+  handleCheckboxChange(event) {
+      this.selectedAccessoriesOption = event.detail.value;
+
+      if (this.selectedAccessoriesOption.length <= 3) {
+          this.finalselectedAccessoriesOption = this.selectedAccessoriesOption;
+          this.SurveyerrorMessage = '';
+      } else {
+          this.selectedAccessoriesOption = [...this.finalselectedAccessoriesOption];
+          this.SurveyerrorMessage = 'Cannot select more than 3 values';
+      }
+      this.selectedAnswers['question7'] = this.selectedAccessoriesOption.join(';');
+      this.checkAllQuestionsAnswered();
+  }
+
+  checkAllQuestionsAnswered() {
+      this.allQuestionsAnswered = Object.values(this.selectedAnswers).every(answer => answer !== '' && answer !== undefined);
+      this.disableSurveySubmitButton = !this.allQuestionsAnswered;
+  }
+  //to store the response in the array
+  handleSurveySubmit() {
+      Object.keys(this.selectedAnswers).forEach(questionName => {
+          this.selectedSurveyAnswersArray.push({
+              question: questionName,
+              answer: this.selectedAnswers[questionName]
+          });
+      });
+      this.surveySubmitButton = false;
+      this.isModalOpen = false;
+  }
+}
+
+
+HTML:--
+
