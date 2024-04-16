@@ -5,12 +5,16 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 // import createSurveyResponses from '@salesforce/apex/ResponseController.createSurveyResponses';
 import createSurveyQuestionResponses from '@salesforce/apex/ResponseController.createSurveyQuestionResponses';
 
+const MAX_OPTIONS = 5;
+
 export default class Survey extends LightningElement {
     surveyValue = 'No';
     isModalOpen = false;
     showConfirmationModal = false; // New property to track confirmation modal
     surveyQuestions = [];
     selectedAnswers = {};
+
+    errorMessage = '';
 
     @wire(getSurveyQuestions, { surveyName: 'Product Design' })
     wiredSurveyQuestions({ error, data }) {
@@ -59,17 +63,29 @@ export default class Survey extends LightningElement {
         const questionId = event.target.name;
         const selectedOption = event.target.value;
         let selectedOptions = this.selectedAnswers[questionId] || [];
-
-        const index = selectedOptions.indexOf(selectedOption);
-
-        if (index === -1) {
-            selectedOptions.push(selectedOption);
-        } else {
-            selectedOptions.splice(index, 1);
+        
+        // Check if the number of selected options exceeds the maximum allowed
+        if (selectedOptions.length >= MAX_OPTIONS && !selectedOptions.includes(selectedOption)) {
+            this.errorMessage = `You can select a maximum of ${MAX_OPTIONS} options`;
+            return;
         }
-
+        
+        const index = selectedOptions.indexOf(selectedOption);
+        if (index === -1) {
+            // If the option is not already selected, add it to a new array of selected options
+            selectedOptions = [...selectedOptions, selectedOption];
+        } else {
+            // If the option is already selected, remove it from a new array of selected options
+            selectedOptions = selectedOptions.filter(option => option !== selectedOption);
+        }
+    
+        // Update the selectedAnswers with the new selection
         this.selectedAnswers = { ...this.selectedAnswers, [questionId]: selectedOptions };
-        console.log(JSON.stringify(this.selectedAnswers));
+    
+        // Clear the error message if the number of selected options falls within the limit
+        if (selectedOptions.length <= MAX_OPTIONS) {
+            this.errorMessage = '';
+        }
     }
 
     handleRadioChange(event) {

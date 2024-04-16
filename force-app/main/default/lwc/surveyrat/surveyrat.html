@@ -22,6 +22,12 @@
                             <div key={questionOption.id} class="slds-m-bottom_medium">
                                 <p>{questionOption.question.Question_Order__c}. {questionOption.question.Question_Text__c}</p>
                                 <template if:true={questionOption.isMultiSelect}>
+                                    <template if:true={errorMessage}>
+                                        <div class="slds-notify slds-notify_alert slds-theme_error" role="alert">
+                                            <span class="slds-assistive-text">Error</span>
+                                            <h2>{errorMessage}</h2>
+                                        </div>
+                                    </template>
                                     <template for:each={questionOption.options} for:item="option">
                                         <lightning-input type="checkbox" key={option.value} name={questionOption.id} label={option.label} value={option.value} onchange={handleCheckboxChange}></lightning-input>
                                     </template>
